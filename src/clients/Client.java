@@ -5,7 +5,6 @@ import java.net.Socket;
 
 public class Client implements Runnable {
     private final Socket socket;
-
     private BufferedReader in;
     private PrintWriter out;
     private BufferedReader consoleInput;
@@ -23,7 +22,7 @@ public class Client implements Runnable {
             in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
             consoleInput = new BufferedReader(new InputStreamReader(System.in));
-            out.println(name);
+            out.println(this.name);
 
             new Thread(this::waitForMessage).start();
             new Thread(this::sendMessage).start();
@@ -41,7 +40,7 @@ public class Client implements Runnable {
                 System.out.println(message);
             }
         } catch (IOException e) {
-            System.out.println("Ypu have been disconnected");
+            System.out.println("You have been disconnected");
 
         } finally {
             close();
@@ -59,15 +58,14 @@ public class Client implements Runnable {
                 }
             }
         } catch (IOException e) {
-            System.out.println(name + ": ошибка отправки сообщения.");
-        } finally {
-            close();
+            System.out.println("Error during sending message.");
         }
     }
 
     public void close() {
         try {
             socket.close();
+            System.exit(0);
         } catch (IOException e) {
             System.out.printf("Error during closing the socket - %s\n", e.getMessage());
         }

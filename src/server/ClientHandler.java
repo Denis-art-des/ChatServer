@@ -3,7 +3,11 @@ package server;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ClientHandler implements Runnable {
 
@@ -11,7 +15,7 @@ public class ClientHandler implements Runnable {
     private final Socket handler;
     private final Server server;
 
-    private String[] recipients;
+    private ArrayList<String> recipients;
 
     private String message;
 
@@ -25,17 +29,28 @@ public class ClientHandler implements Runnable {
         MessageCounter = 0;
     }
 
-    public void splitMessage(String message){
+    public void splitMessage(String message) {
         String[] messageParts = message.split(":");
-        this.recipients = messageParts[0].split("\\|");
+        this.recipients = new ArrayList<>(Arrays.asList(messageParts[0].split("\\|")));
         this.message = messageParts[1];
+        checkIfSenderRecipient();
     }
 
-    public boolean validCheck(){
+    public void checkIfSenderRecipient() {
+        String name = server.getClientName(this);
+        for (int i = 0; i < recipients.size(); i++) {
+            if (name.equals(recipients.get(i))) {
+                recipients.remove(i);
+                server.sendToThis("You cant write yourself.", server.getClientName(this));
+            }
+        }
+    }
+
+    public boolean validCheck() {
         String[] messageWords = message.trim().split(" ");
-        for (String word: messageWords){
-            for (String banWord: banPhrases){
-                if (word.equals(banWord)){
+        for (String word : messageWords) {
+            for (String banWord : banPhrases) {
+                if (word.equals(banWord)) {
                     return false;
                 }
             }
@@ -43,7 +58,7 @@ public class ClientHandler implements Runnable {
         return true;
     }
 
-    public Socket getClientSocket(){
+    public Socket getClientSocket() {
         return handler;
     }
 
@@ -57,37 +72,39 @@ public class ClientHandler implements Runnable {
                     server.addClient(message, this);
                     System.out.println("client " + message + " added");
                     MessageCounter++;
-                }else if (message.matches("^#@([a-zA-Z0-9_]+(\\|@[a-zA-Z0-9_]+)*):.+$")){
+                } else if (message.matches("^#@([a-zA-Z0-9_]+(\\|@[a-zA-Z0-9_]+)*):.+$")) {
                     splitMessage(message);
-                    if (validCheck()){
-                        server.sendEveryoneExcept(this.message, recipients);
-                    }else {
+                    if (validCheck()) {
+                        server.sendEveryoneExcept(server.getClientName(this) + ": " + this.message, recipients);
+                    } else {
                         break;
                     }
-                }else if (message.matches("^@([a-zA-Z0-9_]+(\\|@[a-zA-Z0-9_]+)*):.+$")) {
+                } else if (message.matches("^@([a-zA-Z0-9_]+(\\|@[a-zA-Z0-9_]+)*):.+$")) {
                     splitMessage(message);
-                    if (validCheck()){
-                        server.sendToThisList(this.message, recipients);
-                    }else {
+                    if (validCheck()) {
+                        server.sendToThisList(server.getClientName(this) + ": " + this.message, recipients);
+                    } else {
                         break;
                     }
-                }else if (message.matches("^@.+:.+$")) {
+                } else if (message.matches("^@.+:.+$")) {
                     splitMessage(message);
-                    if (validCheck()){
-                        server.sendToThis(this.message, recipients[0]);
-                    }else {
+                    if (validCheck()) {
+                        if (!recipients.isEmpty()) {
+                            server.sendToThis(server.getClientName(this) + ": " + this.message, recipients.get(0));
+                        }
+                    } else {
                         break;
                     }
-                }else if (message.equals("send ban phrases")){
+                } else if (message.equals("send ban phrases")) {
                     server.sendBanPhrases(this);
-                } else if (message.equals("disconnect")){
-                    server.sendToEveryone("User" + server.getClientName(this) + "has been disconnected.", this);
-                }
-                else {
+                } else if (message.equals("disconnect")) {
+                    server.sendToEveryone("User " + server.getClientName(this) + "has been disconnected.", this);
+                    server.removeClient(this);
+                } else {
                     this.message = message;
-                    if (validCheck()){
-                        server.sendToEveryone(this.message, this);
-                    }else {
+                    if (validCheck()) {
+                        server.sendToEveryone(server.getClientName(this) + ": " + this.message, this);
+                    } else {
                         break;
                     }
                 }
@@ -99,7 +116,6 @@ public class ClientHandler implements Runnable {
         }
 
     }
-
 
 
 }

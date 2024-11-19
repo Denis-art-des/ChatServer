@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -43,14 +44,14 @@ public class Server implements Runnable {
     }
 
 
-    public synchronized void sendEveryoneExcept(String message, String[] notRecipients) {
+    public synchronized void sendEveryoneExcept(String message, ArrayList<String> notRecipients) {
         Set<String> tmpClients = clients.keySet();
         for (String name : notRecipients) {
             if (tmpClients.contains(name)) {
                 tmpClients.remove(name);
             }
         }
-        for (String client: tmpClients){
+        for (String client : tmpClients) {
             try {
                 OutputStream clientOutputStream = clients.get(client).getClientSocket().getOutputStream();
                 PrintWriter recipientOut = new PrintWriter(clientOutputStream, true);
@@ -61,7 +62,7 @@ public class Server implements Runnable {
         }
     }
 
-    public synchronized void sendToThisList(String message, String[] recipients) {
+    public synchronized void sendToThisList(String message, ArrayList<String> recipients) {
         for (String name : recipients) {
             if (clients.containsKey(name))
                 try {
@@ -114,7 +115,7 @@ public class Server implements Runnable {
     }
 
     public synchronized void removeClient(ClientHandler client) {
-            clients.remove(client);
+        clients.remove(getClientName(client));
     }
 
     public synchronized String getClientName(ClientHandler asker) {
