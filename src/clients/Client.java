@@ -27,6 +27,14 @@ public class Client implements Runnable {
             new Thread(this::waitForMessage).start();
             new Thread(this::sendMessage).start();
 
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    out.println("disconnect");
+                } catch (Exception e) {
+                    System.err.println("Ошибка при уведомлении сервера об отключении: " + e.getMessage());
+                }
+            }));
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

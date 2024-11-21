@@ -77,6 +77,9 @@ public class Server implements Runnable {
 
     public synchronized void sendToThis(String message, String recipient) {
         ClientHandler rec = clients.get(recipient);
+        if(rec == null){
+            return;
+        }
         try {
             OutputStream clientOutputStream = rec.getClientSocket().getOutputStream();
             PrintWriter recipientOut = new PrintWriter(clientOutputStream, true);

@@ -50,7 +50,7 @@ public class ClientHandler implements Runnable {
         String[] messageWords = message.trim().split(" ");
         for (String word : messageWords) {
             for (String banWord : banPhrases) {
-                if (word.equals(banWord)) {
+                if (word.toLowerCase().equals(banWord)) {
                     return false;
                 }
             }
@@ -76,15 +76,11 @@ public class ClientHandler implements Runnable {
                     splitMessage(message);
                     if (validCheck()) {
                         server.sendEveryoneExcept(server.getClientName(this) + ": " + this.message, recipients);
-                    } else {
-                        break;
                     }
                 } else if (message.matches("^@([a-zA-Z0-9_]+(\\|@[a-zA-Z0-9_]+)*):.+$")) {
                     splitMessage(message);
                     if (validCheck()) {
                         server.sendToThisList(server.getClientName(this) + ": " + this.message, recipients);
-                    } else {
-                        break;
                     }
                 } else if (message.matches("^@.+:.+$")) {
                     splitMessage(message);
@@ -92,20 +88,16 @@ public class ClientHandler implements Runnable {
                         if (!recipients.isEmpty()) {
                             server.sendToThis(server.getClientName(this) + ": " + this.message, recipients.get(0));
                         }
-                    } else {
-                        break;
                     }
                 } else if (message.equals("send ban phrases")) {
                     server.sendBanPhrases(this);
                 } else if (message.equals("disconnect")) {
-                    server.sendToEveryone("User " + server.getClientName(this) + "has been disconnected.", this);
+                    server.sendToEveryone("User " + server.getClientName(this) + " has been disconnected.", this);
                     server.removeClient(this);
                 } else {
                     this.message = message;
                     if (validCheck()) {
                         server.sendToEveryone(server.getClientName(this) + ": " + this.message, this);
-                    } else {
-                        break;
                     }
                 }
 

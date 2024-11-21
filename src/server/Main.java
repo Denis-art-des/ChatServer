@@ -11,7 +11,7 @@ public class Main {
             serverProps.load(inputStream);
             String name = serverProps.getProperty("name");
             int port = Integer.parseInt(serverProps.getProperty("port"));
-            String[] banWords = new String[]{serverProps.getProperty("bun_phrases")};
+            String[] banWords = serverProps.getProperty("ban_phrases").split(",");
             Server server = new Server(name, port, banWords);
             server.run();
         } catch (IOException e) {
